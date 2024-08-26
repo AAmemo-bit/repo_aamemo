@@ -1,0 +1,1 @@
+Nombre: dos, IMC: 20.76, Categoría: Peso normal
