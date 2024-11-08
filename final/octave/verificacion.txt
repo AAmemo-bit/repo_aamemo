@@ -1,0 +1,12 @@
+Usuario: Alan (Carné: 202100023)
+Número: 3
+Es primo: 1
+Es perfecto: 0
+Es palíndromo: 1
+
+Usuario: Alan (Carné: 202100023)
+Número: 6
+Es primo: 0
+Es perfecto: 1
+Es palíndromo: 1
+

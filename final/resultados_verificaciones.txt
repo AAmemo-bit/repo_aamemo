@@ -1,0 +1,84 @@
+Usuario: Luisa (Carné: 098765432)
+Número: 41
+Es primo: 1
+Es perfecto: 0
+Es palíndromo: 0
+
+Usuario: Alan (Carné: 202100023)
+Número: 314
+Es primo: 0
+Es perfecto: 0
+Es palíndromo: 0
+
+Usuario: Alan (Carné: 202100023)
+Número: 314
+Es primo: 0
+Es perfecto: 0
+Es palíndromo: 0
+
+Usuario: Alan (Carné: 202100023)
+Número: 123
+Es primo: 0
+Es perfecto: 0
+Es palíndromo: 0
+
+Usuario: Alan (Carné: 202100023)
+Número: 3
+Es primo: 1
+Es perfecto: 0
+Es palíndromo: 1
+
+Usuario: Alan (Carné: 202100023)
+Número: 1441
+Es primo: 0
+Es perfecto: 0
+Es palíndromo: 1
+
+Usuario: Alan (Carné: 202100023)
+Número: 1
+Es primo: 0
+Es perfecto: 0
+Es palíndromo: 1
+
+Usuario: Alan (Carné: 202100023)
+Número: 45
+Es primo: 0
+Es perfecto: 0
+Es palíndromo: 0
+
+Usuario: Alan (Carné: 202100023)
+Número: 54
+Es primo: 0
+Es perfecto: 0
+Es palíndromo: 0
+
+Usuario: Alan (Carné: 202100023)
+Número: 33
+Es primo: 0
+Es perfecto: 0
+Es palíndromo: 1
+
+Usuario: Boris (Carné: 199900023)
+Número: 33
+Es primo: 0
+Es perfecto: 0
+Es palíndromo: 1
+
+Usuario: Boris (Carné: 199900023)
+Número: 1441
+Es primo: 0
+Es perfecto: 0
+Es palíndromo: 1
+
+Usuario: Boris (Carné: 199900023)
+Número: 6
+Es primo: 0
+Es perfecto: 1
+Es palíndromo: 1
+
+Usuario: Boris (Carné: 199900023)
+Número: 737
+Es primo: 0
+Es perfecto: 0
+Es palíndromo: 1
+
