@@ -72,152 +72,177 @@ while true
         while true
             disp('--- Menú Principal ---');
             disp('1. Ingresar datos');
-            disp('2. Ver historial de datos');
-            disp('3. Borrar datos');
-            disp('4. Salir');
+            disp('2. Ingresar palabras');
+            disp('3. Ver historial de datos');
+            disp('4. Borrar datos');
+            disp('5. Salir');
             opcion = input('Ingrese su elección: ');
 
             switch opcion
                 case 1
-           % Verificar que ya hay un usuario registrado
-            nombre = nombre;
-            carne = carne;
+                    % Verificar que el usuario esté registrado
+                    nombre = nombre;
+                    carne = carne;
 
-            % Buscar al usuario en la base de datos
-            result = pq_exec_params(conn, 'SELECT id FROM usuario WHERE nombre = $1 AND carne = $2;', {nombre, carne});
+                    % Buscar al usuario en la base de datos
+                    result = pq_exec_params(conn, 'SELECT id FROM usuario WHERE nombre = $1 AND carne = $2;', {nombre, carne});
 
-            if isempty(result.data)
-                disp('Usuario no encontrado. Por favor, registre los datos del usuario primero.');
-            else
-                % Obtener el id del usuario registrado
-                id_usuario = result.data{1};
-
-                disp('Tipos de números');
-                disp('1. Un número primo es aquel que solo tiene dos divisores: 1 y el mismo número.');
-                disp('2. Un número perfecto es aquel que es igual a la suma de sus divisores propios (exceptuando el mismo número).');
-                disp('3. Un número palíndromo es aquel que se lee igual de izquierda a derecha que de derecha a izquierda.');
-
-                numero_str = input('Ingrese el dato que desea verificar (solo números): ', 's');
-
-                % Verificar que el dato ingresado sea un número
-                if isempty(regexp(numero_str, '^\d+$', 'once'))
-                    disp('Por favor ingrese solo números.');
-                else
-                    numero = str2double(numero_str);
-
-                    % Verificar si el número es primo
-                    if numero <= 1
-                        es_primo = false;
-                        disp('El número no es primo.');
+                    if isempty(result.data)
+                        disp('Usuario no encontrado. Por favor, registre los datos del usuario primero.');
                     else
-                        es_primo = true;
-                        for i = 2:numero-1
-                            if mod(numero, i) == 0
-                                es_primo = false;  % Si es divisible por otro número, no es primo
-                                break;
-                            end
-                        end
+                        % Obtener el id del usuario registrado
+                        id_usuario = result.data{1};
 
-                        if es_primo
-                            disp('El número es primo.');
+                        % Solicitar el número a verificar
+                        numero_str = input('Ingrese el dato numérico a verificar: ', 's');
+
+                        % Verificar que el dato ingresado sea un número
+                        if isempty(regexp(numero_str, '^\d+$', 'once'))
+                            disp('Por favor ingrese solo números.');
                         else
-                            disp('El número no es un número primo.');
+                            numero = str2double(numero_str);
+
+                            % Verificar si el número es primo
+                            if numero <= 1
+                                es_primo = false;
+                                disp('El número no es primo.');
+                            else
+                                es_primo = true;
+                                for i = 2:numero-1
+                                    if mod(numero, i) == 0
+                                        es_primo = false;  % Si es divisible por otro número, no es primo
+                                        break;
+                                    end
+                                end
+
+                                if es_primo
+                                    disp('El número es primo.');
+                                else
+                                    disp('El número no es un número primo.');
+                                end
+                            end
+
+                            % Verificar si el número es perfecto
+                            suma_divisores = 0;
+                            for i = 1:(numero - 1)
+                                if mod(numero, i) == 0
+                                    suma_divisores = suma_divisores + i;
+                                end
+                            end
+
+                            if suma_divisores == numero
+                                es_perfecto = true;
+                                disp('El número es un número perfecto.');
+                            else
+                                es_perfecto = false;
+                                disp('El número no es un número perfecto.');
+                            end
+
+                            % Insertar los resultados en la base de datos
+                            pq_exec_params(conn, ['INSERT INTO verificaciones (id_usuario, dato, es_primo, es_perfecto) ' ...
+                                                  'VALUES ($1, $2, $3, $4);'], {id_usuario, numero, es_primo, es_perfecto});
+                            disp('Los resultados han sido guardados en la base de datos.');
+
+                            % Guardar los resultados en el archivo de texto
+                            fid = fopen(archivo_texto, 'a');
+                            fprintf(fid, 'Usuario: %s (Carné: %s)\n', nombre, carne);
+                            fprintf(fid, 'Número: %d\n', numero);
+                            fprintf(fid, 'Es primo: %d\n', es_primo);
+                            fprintf(fid, 'Es perfecto: %d\n\n', es_perfecto);
+                            fclose(fid);  % Cerrar el archivo
+                            disp('Los resultados también han sido guardados en el archivo de texto.');
                         end
                     end
 
-                    % Verificar si el número es perfecto
-                    suma_divisores = 0;
-                    for i = 1:(numero - 1)
-                        if mod(numero, i) == 0
-                            suma_divisores = suma_divisores + i;
-                        end
-                    end
-
-                    if suma_divisores == numero
-                        es_perfecto = true;
-                        disp('El número es un número perfecto.');
-                    else
-                        es_perfecto = false;
-                        disp('El número no es un número perfecto.');
-                    end
-
-                    % Verificar si el número es palíndromo
-                    num_str = num2str(numero);  % Convertir el número a cadena de texto
-                    if strcmp(num_str, flip(num_str))
-                        es_palindromo = true;
-                        disp('El número es un número palíndromo.');
-                    else
-                        es_palindromo = false;
-                        disp('El número no es un número palíndromo.');
-                    end
-
-                    % Insertar los resultados en la base de datos
-                    pq_exec_params(conn, ['INSERT INTO verificaciones (id_usuario, numero, es_primo, es_perfecto, es_palindromo) ' ...
-                                          'VALUES ($1, $2, $3, $4, $5);'], ...
-                                          {id_usuario, numero, es_primo, es_perfecto, es_palindromo});
-                    disp('Los resultados han sido guardados en la base de datos.');
-
-                    % Guardar los resultados en el archivo de texto
-                    fid = fopen(archivo_texto, 'a');  % Abrir el archivo en modo "append"
-                    fprintf(fid, 'Usuario: %s (Carné: %s)\n', nombre, carne);
-                    fprintf(fid, 'Número: %d\n', numero);
-                    fprintf(fid, 'Es primo: %d\n', es_primo);
-                    fprintf(fid, 'Es perfecto: %d\n', es_perfecto);
-                    fprintf(fid, 'Es palíndromo: %d\n\n', es_palindromo);
-                    fclose(fid);  % Cerrar el archivo
-                    disp('Los resultados también han sido guardados en el archivo de texto.');
-                end
-            end
                 case 2
-   % Mostrar el historial de datos directamente desde la tabla 'verificaciones'
-    result = pq_exec_params(conn, 'SELECT id_usuario, numero, es_primo, es_perfecto, es_palindromo FROM verificaciones;');
+                    % Verificar que el usuario esté registrado
+                    nombre = nombre;
+                    carne = carne;
+
+                    % Buscar al usuario en la base de datos
+                    result = pq_exec_params(conn, 'SELECT id FROM usuario WHERE nombre = $1 AND carne = $2;', {nombre, carne});
+
+                    if isempty(result.data)
+                        disp('Usuario no encontrado. Por favor, registre los datos del usuario primero.');
+                    else
+                        % Obtener el id del usuario registrado
+                        id_usuario = result.data{1};
+
+                        % Solicitar la palabra a verificar
+                        palabra = input('Ingrese una palabra para verificar si es palíndromo: ', 's');
+
+                        % Verificar que la palabra no contenga caracteres especiales ni números
+                        if isempty(regexp(palabra, '^[A-Za-z]+$', 'once'))
+                            disp('Por favor ingrese solo palabras sin caracteres especiales o números.');
+                        else
+                            % Verificar si la palabra es palíndromo
+                            if strcmp(palabra, flip(palabra))
+                                es_palindromo = true;
+                                disp('La palabra es un palíndromo.');
+                            else
+                                es_palindromo = false;
+                                disp('La palabra no es un palíndromo.');
+                            end
+
+                            % Guardar los resultados en la base de datos
+                            pq_exec_params(conn, ['INSERT INTO verificaciones (id_usuario, dato, es_palindromo) ' ...
+                                                  'VALUES ($1, $2, $3);'], {id_usuario, palabra, es_palindromo});
+                            disp('El resultado de la palabra ha sido guardado en la base de datos.');
+
+                            % Guardar en el archivo de texto
+                            fid = fopen(archivo_texto, 'a');
+                            fprintf(fid, 'Usuario: %s (Carné: %s)\n', nombre, carne);
+                            fprintf(fid, 'Palabra: %s\n', palabra);
+                            fprintf(fid, 'Es palíndromo: %d\n\n', es_palindromo);
+                            fclose(fid);  % Cerrar el archivo
+                            disp('Datos guardados correctamente en el archivo de texto.');
+                        end
+                    end
+
+case 3
+    % Consulta a la base de datos para obtener todas las verificaciones
+    query = 'SELECT id_usuario, dato, es_primo, es_perfecto, es_palindromo FROM verificaciones;';
+
+    % Ejecutar la consulta
+    result = pq_exec_params(conn, query, {});
 
     if isempty(result.data)
         disp('No hay datos registrados.');
     else
+        % Mostrar los resultados
         disp('----- Historial de verificaciones -----');
-        disp('ID Usuario\tNúmero\tPrimo\tPerfecto\tPalíndromo');
+        disp('ID  | Dato  | Primo | Perfecto | Palíndromo');
 
-        % Iterar sobre los resultados y mostrarlos de forma legible
+        % Iterar sobre los resultados y mostrar los datos
         for i = 1:size(result.data, 1)
-            id_usuario = result.data{i, 1};
-            numero = result.data{i, 2};
-            es_primo = result.data{i, 3};
-            es_perfecto = result.data{i, 4};
-            es_palindromo = result.data{i, 5};
+            % Acceder a cada columna del resultado correctamente
+            id_usuario = result.data{i, 1};   % ID del usuario
+            dato = result.data{i, 2};         % Número o palabra
+            es_primo = result.data{i, 3};     % Es primo (booleano)
+            es_perfecto = result.data{i, 4};  % Es perfecto (booleano)
+            es_palindromo = result.data{i, 5};% Es palíndromo (booleano)
 
-            % Mostrar la información de manera formateada
-            fprintf('%d\t\t%d\t%d\t%d\t\t%d\n', id_usuario, numero, es_primo, es_perfecto, es_palindromo);
+            % Mostrar los datos con formato
+            fprintf('%d    | %s    | %d     | %d     | %d\n', id_usuario, dato, es_primo, es_perfecto, es_palindromo);
         end
-    end
-                case 3
-                    % Borrar todos los datos de la tabla 'verificaciones'
-    try
-        % Borrar los registros de la tabla 'verificaciones'
-        pq_exec_params(conn, 'DELETE FROM verificaciones;');
-        disp('Todos los datos de la tabla de verificaciones han sido borrados.');
-
-        % Borrar los datos del archivo de texto 'verificacion.txt'
-        if exist('verificacion.txt', 'file') == 2
-            % Si el archivo existe, vaciarlo
-            fclose(fopen('verificacion.txt', 'w'));
-            disp('Los datos del archivo de texto "verificacion.txt" han sido borrados.');
-        else
-            disp('El archivo "verificacion.txt" no existe.');
-        end
-    catch
-        disp('Error al borrar los datos.');
     end
 
 
                 case 4
-                    disp('Saliendo del menú principal...');
+                    % Borrar los datos de la base de datos
+                    pq_exec_params(conn, 'DELETE FROM verificaciones;', {});
+                    disp('Todos los datos han sido borrados de la base de datos.');
+
+                case 5
+                    disp('Saliendo del programa...');
                     break;
+
                 otherwise
-                    disp('Opción no válida. Intente de nuevo.');
+                    disp('Opción no válida.');
             end
         end
-    else
-        disp('Opción no válida. Intente de nuevo.');
     end
 end
+
+% Cerrar la conexión a la base de datos
+pq_disconnect(conn);
