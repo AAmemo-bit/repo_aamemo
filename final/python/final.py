@@ -34,7 +34,7 @@ def pedir_opcion_numerica(mensaje):
         if opcion.isdigit():
             return opcion
         else:
-            print('Por favor ingrese solo números.')
+            print('Por favor ingrese solo números válidos.')
 
 # Menú inicial para ingresar usuario
 while True:
@@ -72,14 +72,15 @@ while True:
 
                 while True:
                     print('--- Menú de Usuario ---')
-                    print('1. Ingresar datos')
-                    print('2. Ver historial de datos')
-                    print('3. Borrar datos')
-                    print('4. Salir')
+                    print('1. Ingresar datos numéricos')
+                    print('2. Ingresar palabra para verificar si es palíndromo')
+                    print('3. Ver historial de datos')
+                    print('4. Borrar datos')
+                    print('5. Salir')
                     opcion_usuario = pedir_opcion_numerica('Ingrese su elección: ')
 
                     if opcion_usuario == '1':
-                        numero_str = input('Ingrese el número a verificar: ').strip()
+                        numero_str = input('Ingrese el dato numérico a verificar: ').strip()
 
                         if not numero_str.isdigit():
                             print('Por favor ingrese solo números.')
@@ -101,17 +102,10 @@ while True:
                             else:
                                 print('El número no es perfecto.')
 
-                            # Verificar si es palíndromo
-                            es_palindromo = str(numero) == str(numero)[::-1]
-                            if es_palindromo:
-                                print('El número es palíndromo.')
-                            else:
-                                print('El número no es palíndromo.')
-
                             # Insertar los resultados en la base de datos
-                            cursor.execute('''INSERT INTO verificaciones (id_usuario, numero, es_primo, es_perfecto, es_palindromo) 
-                                            VALUES (%s, %s, %s, %s, %s);''', 
-                                           (result[0], numero, es_primo, es_perfecto, es_palindromo))
+                            cursor.execute('''INSERT INTO verificaciones (id_usuario, dato, es_primo, es_perfecto) 
+                                            VALUES (%s, %s, %s, %s);''', 
+                                           (result[0], numero, es_primo, es_perfecto))
                             conn.commit()
                             print('Los resultados han sido guardados en la base de datos.')
 
@@ -119,34 +113,62 @@ while True:
                             with open(archivo_texto, 'a') as archivo:
                                 archivo.write(f'Usuario: {nombre} (Carné: {carne})\n')
                                 archivo.write(f'Número: {numero}\n')
-                                archivo.write(f'Es primo: {1 if es_primo else 0}\n')
-                                archivo.write(f'Es perfecto: {1 if es_perfecto else 0}\n')
-                                archivo.write(f'Es palíndromo: {1 if es_palindromo else 0}\n\n')
+                                archivo.write(f'Es primo: {"Sí" if es_primo else "No"}\n')
+                                archivo.write(f'Es perfecto: {"Sí" if es_perfecto else "No"}\n')
+                                archivo.write('\n')
 
-                            print('Datos guardados correctamente.')
+                            print('Datos guardados correctamente en el archivo de texto.')
 
                     elif opcion_usuario == '2':
+                        palabra = input('Ingrese una palabra para verificar si es palíndromo: ').strip()
+
+                        if contiene_caracteres_especiales(palabra) or not palabra.isalpha():
+                            print('Por favor ingrese solo palabras sin caracteres especiales o números.')
+                        else:
+                            es_palindromo = palabra.lower() == palabra.lower()[::-1]
+                            if es_palindromo:
+                                print('La palabra es un palíndromo.')
+                            else:
+                                print('La palabra no es un palíndromo.')
+
+                            # Guardar los resultados en la base de datos (opcional según los requisitos)
+                            cursor.execute('''INSERT INTO verificaciones (id_usuario, dato, es_palindromo) 
+                                            VALUES (%s, %s, %s);''', 
+                                           (result[0], palabra, es_palindromo))
+                            conn.commit()
+                            print('El resultado de la palabra ha sido guardado en la base de datos.')
+
+                            # Guardar en el archivo de texto
+                            with open(archivo_texto, 'a') as archivo:
+                                archivo.write(f'Usuario: {nombre} (Carné: {carne})\n')
+                                archivo.write(f'Palabra: {palabra}\n')
+                                archivo.write(f'Es palíndromo: {"Sí" if es_palindromo else "No"}\n')
+                                archivo.write('\n')
+
+                            print('Datos guardados correctamente en el archivo de texto.')
+
+                    elif opcion_usuario == '3':
                         # Mostrar historial de datos desde la tabla 'verificaciones'
-                        cursor.execute('SELECT id_usuario, numero, es_primo, es_perfecto, es_palindromo FROM verificaciones;')
+                        cursor.execute('SELECT id_usuario, dato, es_primo, es_perfecto, es_palindromo FROM verificaciones;')
                         result = cursor.fetchall()
 
                         if not result:
                             print('No hay datos registrados.')
                         else:
                             print('----- Historial de verificaciones -----')
-                            print('ID Usuario\tNúmero\tPrimo\tPerfecto\tPalíndromo')
+                            print('ID Usuario\tNúmero/Palabra\tPrimo\tPerfecto\tPalíndromo')
 
                             # Iterar sobre los resultados y mostrarlos
                             for row in result:
-                                id_usuario, numero, es_primo, es_perfecto, es_palindromo = row
-                                print(f'{id_usuario}\t\t{numero}\t{es_primo}\t{es_perfecto}\t\t{es_palindromo}')
+                                id_usuario, dato, es_primo, es_perfecto, es_palindromo = row
+                                print(f'{id_usuario}\t\t{dato}\t{es_primo}\t{es_perfecto}\t\t{es_palindromo}')
 
-                    elif opcion_usuario == '3':
+                    elif opcion_usuario == '4':
                         try:
                             # Borrar los registros de la tabla 'verificaciones'
                             cursor.execute('DELETE FROM verificaciones;')
                             conn.commit()
-                            print('Todos los datos de la tabla de verificaciones han sido borrados.')
+                            print('Todos los datos de las tablas de verificaciones han sido borrados.')
 
                             # Borrar los datos del archivo de texto 'resultados_verificaciones.txt'
                             if os.path.exists(archivo_texto):
@@ -160,12 +182,12 @@ while True:
                         except Exception as e:
                             print(f'Error al borrar los datos: {e}')
 
-                    elif opcion_usuario == '4':
+                    elif opcion_usuario == '5':
                         print('Saliendo al menú inicial...')
                         break
 
                     else:
-                        print('Opción no válida. Por favor, elija una opción entre 1 y 4.')
+                        print('Opción no válida. Por favor, elija una opción entre 1 y 5.')
 
         elif respuesta == 'N':
             # Registrar nuevo usuario
@@ -189,5 +211,3 @@ while True:
 # Cerrar la conexión a la base de datos
 cursor.close()
 conn.close()
-
-
